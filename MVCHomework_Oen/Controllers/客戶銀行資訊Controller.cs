@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using MVCHomework_Oen.Models;
+using System.Linq.Dynamic;
 
 namespace MVCHomework_Oen.Controllers
 {
@@ -15,10 +17,85 @@ namespace MVCHomework_Oen.Controllers
         private CustomerProfileEntities db = new CustomerProfileEntities();
 
         // GET: 客戶銀行資訊
-        public ActionResult Index()
+        public ActionResult Index(string sortOrder= "銀行名稱", bool isDesc=false, string SearchString = "")
         {
-            var 客戶銀行資訊 = db.客戶銀行資訊.Include(客 => 客.客戶資料);
+            var 客戶銀行資訊 = from main in db.客戶銀行資訊
+                         where main.is_Delete == false
+                         select main;
+
+            ViewBag.isDesc = isDesc == false ? true :false;
+
+            if (!string.IsNullOrEmpty(SearchString))
+            {
+                客戶銀行資訊 = 客戶銀行資訊.Where(s => s.銀行名稱.Contains(SearchString));
+            }
+
+            #region 清單排序 升冪降冪
+            switch (sortOrder)
+            {
+                case "銀行名稱":
+                    if(isDesc)
+                    {
+                        客戶銀行資訊 = 客戶銀行資訊.OrderByDescending(s => s.銀行名稱);
+                    }
+                    else
+                    {
+                        客戶銀行資訊 = 客戶銀行資訊.OrderBy(s => s.銀行名稱);
+                    }
+                    break;
+                case "銀行代碼":
+                    if (isDesc)
+                    {
+                        客戶銀行資訊 = 客戶銀行資訊.OrderByDescending(s => s.銀行代碼);
+                    }
+                    else
+                    {
+                        客戶銀行資訊 = 客戶銀行資訊.OrderBy(s => s.銀行代碼);
+                    }
+                    break;
+                case "分行代碼":
+                    if (isDesc)
+                    {
+                        客戶銀行資訊 = 客戶銀行資訊.OrderByDescending(s => s.分行代碼);
+                    }
+                    else
+                    {
+                        客戶銀行資訊 = 客戶銀行資訊.OrderBy(s => s.分行代碼);
+                    }
+                    break;
+                case "帳戶名稱":
+                    if (isDesc)
+                    {
+                        客戶銀行資訊 = 客戶銀行資訊.OrderByDescending(s => s.帳戶名稱);
+                    }
+                    else
+                    {
+                        客戶銀行資訊 = 客戶銀行資訊.OrderBy(s => s.帳戶名稱);
+                    }
+                    break;
+                case "帳戶號碼":
+                    if (isDesc)
+                    {
+                        客戶銀行資訊 = 客戶銀行資訊.OrderByDescending(s => s.帳戶號碼);
+                    }
+                    else
+                    {
+                        客戶銀行資訊 = 客戶銀行資訊.OrderBy(s => s.帳戶號碼);
+                    }
+                    break;                
+                default:
+                    客戶銀行資訊 = 客戶銀行資訊.OrderBy(s => s.銀行名稱);
+                    break;
+            }
+            #endregion
+
             return View(客戶銀行資訊.ToList());
+        }
+
+        public IQueryable<客戶銀行資訊> Sort(IQueryable<客戶銀行資訊> quizzes, string key, bool isDesc)
+        {
+            quizzes = quizzes.OrderBy(key + (isDesc ? " descending" : ""));
+            return quizzes;
         }
 
         // GET: 客戶銀行資訊/Details/5
@@ -39,7 +116,11 @@ namespace MVCHomework_Oen.Controllers
         // GET: 客戶銀行資訊/Create
         public ActionResult Create()
         {
-            ViewBag.客戶Id = new SelectList(db.客戶資料, "Id", "客戶名稱");
+            var 客戶資料 = from main in db.客戶資料
+                       where main.is_Delete == false
+                       select main;
+
+            ViewBag.客戶Id = new SelectList(客戶資料, "Id", "客戶名稱");
             return View();
         }
 
@@ -57,7 +138,6 @@ namespace MVCHomework_Oen.Controllers
                 return RedirectToAction("Index");
             }
 
-            ViewBag.客戶Id = new SelectList(db.客戶資料, "Id", "客戶名稱", 客戶銀行資訊.客戶Id);
             return View(客戶銀行資訊);
         }
 
@@ -73,7 +153,7 @@ namespace MVCHomework_Oen.Controllers
             {
                 return HttpNotFound();
             }
-            ViewBag.客戶Id = new SelectList(db.客戶資料, "Id", "客戶名稱", 客戶銀行資訊.客戶Id);
+            ViewBag.客戶Id = new SelectList(db.客戶銀行資訊, "Id", "客戶名稱", 客戶銀行資訊.客戶Id);
             return View(客戶銀行資訊);
         }
 
@@ -90,7 +170,7 @@ namespace MVCHomework_Oen.Controllers
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
-            ViewBag.客戶Id = new SelectList(db.客戶資料, "Id", "客戶名稱", 客戶銀行資訊.客戶Id);
+            ViewBag.客戶Id = new SelectList(db.客戶銀行資訊, "Id", "客戶名稱", 客戶銀行資訊.客戶Id);
             return View(客戶銀行資訊);
         }
 
@@ -115,7 +195,7 @@ namespace MVCHomework_Oen.Controllers
         public ActionResult DeleteConfirmed(int id)
         {
             客戶銀行資訊 客戶銀行資訊 = db.客戶銀行資訊.Find(id);
-            db.客戶銀行資訊.Remove(客戶銀行資訊);
+            客戶銀行資訊.is_Delete = true; //刪除資料功能不能真的刪除資料庫中的資料
             db.SaveChanges();
             return RedirectToAction("Index");
         }

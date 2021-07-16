@@ -15,9 +15,89 @@ namespace MVCHomework_Oen.Controllers
         private CustomerProfileEntities db = new CustomerProfileEntities();
 
         // GET: 客戶資料
-        public ActionResult Index()
+        public ActionResult Index(string sortOrder = "客戶名稱", bool isDesc = false, string searchString = "")
         {
-            return View(db.客戶資料.ToList());
+            var 客戶資料 = from main in db.客戶資料
+                       where main.is_Delete == false
+                       select main;
+
+            ViewBag.isDesc = isDesc == false ? true : false;
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                客戶資料 = 客戶資料.Where(s => s.客戶名稱.Contains(searchString));
+            }
+
+            #region 清單排序 升冪降冪
+            switch (sortOrder)
+            {
+                case "客戶名稱":
+                    if (isDesc)
+                    {
+                        客戶資料 = 客戶資料.OrderByDescending(s => s.客戶名稱);
+                    }
+                    else
+                    {
+                        客戶資料 = 客戶資料.OrderBy(s => s.客戶名稱);
+                    }
+                    break;
+                case "統一編號":
+                    if (isDesc)
+                    {
+                        客戶資料 = 客戶資料.OrderByDescending(s => s.統一編號);
+                    }
+                    else
+                    {
+                        客戶資料 = 客戶資料.OrderBy(s => s.統一編號);
+                    }
+                    break;
+                case "電話":
+                    if (isDesc)
+                    {
+                        客戶資料 = 客戶資料.OrderByDescending(s => s.電話);
+                    }
+                    else
+                    {
+                        客戶資料 = 客戶資料.OrderBy(s => s.電話);
+                    }
+                    break;
+                case "傳真":
+                    if (isDesc)
+                    {
+                        客戶資料 = 客戶資料.OrderByDescending(s => s.傳真);
+                    }
+                    else
+                    {
+                        客戶資料 = 客戶資料.OrderBy(s => s.傳真);
+                    }
+                    break;
+                case "地址":
+                    if (isDesc)
+                    {
+                        客戶資料 = 客戶資料.OrderByDescending(s => s.地址);
+                    }
+                    else
+                    {
+                        客戶資料 = 客戶資料.OrderBy(s => s.地址);
+                    }
+                    break;
+                case "Email":
+                    if (isDesc)
+                    {
+                        客戶資料 = 客戶資料.OrderByDescending(s => s.Email);
+                    }
+                    else
+                    {
+                        客戶資料 = 客戶資料.OrderBy(s => s.Email);
+                    }
+                    break;
+                default:
+                    客戶資料 = 客戶資料.OrderBy(s => s.客戶名稱);
+                    break;
+            }
+            #endregion
+
+            return View(客戶資料.ToList());
         }
 
         // GET: 客戶資料/Details/5
@@ -48,6 +128,13 @@ namespace MVCHomework_Oen.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "Id,客戶名稱,統一編號,電話,傳真,地址,Email")] 客戶資料 客戶資料)
         {
+            //檢查Email是否重複
+            if (db.客戶資料.Any(x => x.Email == 客戶資料.Email))
+            {
+                ModelState.AddModelError("Email", "Email不可重複");
+                return View(客戶資料);
+            }
+
             if (ModelState.IsValid)
             {
                 db.客戶資料.Add(客戶資料);
@@ -80,6 +167,13 @@ namespace MVCHomework_Oen.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "Id,客戶名稱,統一編號,電話,傳真,地址,Email")] 客戶資料 客戶資料)
         {
+            //檢查Email是否重複
+            if (db.客戶資料.Any(x => x.Email == 客戶資料.Email))
+            {
+                ModelState.AddModelError("Email", "Email不可重複");
+                return View(客戶資料);
+            }
+
             if (ModelState.IsValid)
             {
                 db.Entry(客戶資料).State = EntityState.Modified;
@@ -110,7 +204,7 @@ namespace MVCHomework_Oen.Controllers
         public ActionResult DeleteConfirmed(int id)
         {
             客戶資料 客戶資料 = db.客戶資料.Find(id);
-            db.客戶資料.Remove(客戶資料);
+            客戶資料.is_Delete = true; //刪除資料功能不能真的刪除資料庫中的資料
             db.SaveChanges();
             return RedirectToAction("Index");
         }

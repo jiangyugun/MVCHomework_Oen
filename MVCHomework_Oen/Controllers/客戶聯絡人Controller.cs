@@ -15,9 +15,79 @@ namespace MVCHomework_Oen.Controllers
         private CustomerProfileEntities db = new CustomerProfileEntities();
 
         // GET: 客戶聯絡人
-        public ActionResult Index()
+         public ActionResult Index(string sortOrder = "職稱", bool isDesc = false, string SearchString = "")
         {
-            var 客戶聯絡人 = db.客戶聯絡人.Include(客 => 客.客戶資料);
+            var 客戶聯絡人 = from main in db.客戶聯絡人
+                        where main.is_Delete == false
+                        select main;
+
+            ViewBag.isDesc = isDesc == false ? true : false;
+
+            if (!string.IsNullOrEmpty(SearchString))
+            {
+                客戶聯絡人 = 客戶聯絡人.Where(s => s.姓名.Contains(SearchString));
+            }
+
+
+            #region 清單排序 升冪降冪
+            switch (sortOrder)
+            {
+                case "職稱":
+                    if (isDesc)
+                    {
+                        客戶聯絡人 = 客戶聯絡人.OrderByDescending(s => s.職稱);
+                    }
+                    else
+                    {
+                        客戶聯絡人 = 客戶聯絡人.OrderBy(s => s.職稱);
+                    }
+                    break;
+                case "姓名":
+                    if (isDesc)
+                    {
+                        客戶聯絡人 = 客戶聯絡人.OrderByDescending(s => s.姓名);
+                    }
+                    else
+                    {
+                        客戶聯絡人 = 客戶聯絡人.OrderBy(s => s.姓名);
+                    }
+                    break;
+                case "Email":
+                    if (isDesc)
+                    {
+                        客戶聯絡人 = 客戶聯絡人.OrderByDescending(s => s.Email);
+                    }
+                    else
+                    {
+                        客戶聯絡人 = 客戶聯絡人.OrderBy(s => s.Email);
+                    }
+                    break;
+                case "手機":
+                    if (isDesc)
+                    {
+                        客戶聯絡人 = 客戶聯絡人.OrderByDescending(s => s.手機);
+                    }
+                    else
+                    {
+                        客戶聯絡人 = 客戶聯絡人.OrderBy(s => s.手機);
+                    }
+                    break;
+                case "電話":
+                    if (isDesc)
+                    {
+                        客戶聯絡人 = 客戶聯絡人.OrderByDescending(s => s.電話);
+                    }
+                    else
+                    {
+                        客戶聯絡人 = 客戶聯絡人.OrderBy(s => s.電話);
+                    }
+                    break;               
+                default:
+                    客戶聯絡人 = 客戶聯絡人.OrderBy(s => s.職稱);
+                    break;
+            }
+            #endregion
+
             return View(客戶聯絡人.ToList());
         }
 
@@ -50,6 +120,14 @@ namespace MVCHomework_Oen.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "Id,客戶Id,職稱,姓名,Email,手機,電話")] 客戶聯絡人 客戶聯絡人)
         {
+            //檢查Email是否重複
+            if (db.客戶聯絡人.Any(x => x.Email == 客戶聯絡人.Email))
+            {
+                ModelState.AddModelError("Email", "Email不可重複");
+                ViewBag.客戶Id = new SelectList(db.客戶資料, "Id", "客戶名稱");
+                return View(客戶聯絡人);
+            }
+
             if (ModelState.IsValid)
             {
                 db.客戶聯絡人.Add(客戶聯絡人);
@@ -84,6 +162,14 @@ namespace MVCHomework_Oen.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "Id,客戶Id,職稱,姓名,Email,手機,電話")] 客戶聯絡人 客戶聯絡人)
         {
+            //檢查Email是否重複
+            if (db.客戶聯絡人.Any(x => x.Email == 客戶聯絡人.Email))
+            {
+                ModelState.AddModelError("Email", "Email不可重複");
+                ViewBag.客戶Id = new SelectList(db.客戶資料, "Id", "客戶名稱"); //下拉選單加值
+                return View(客戶聯絡人);
+            }
+
             if (ModelState.IsValid)
             {
                 db.Entry(客戶聯絡人).State = EntityState.Modified;
@@ -115,7 +201,7 @@ namespace MVCHomework_Oen.Controllers
         public ActionResult DeleteConfirmed(int id)
         {
             客戶聯絡人 客戶聯絡人 = db.客戶聯絡人.Find(id);
-            db.客戶聯絡人.Remove(客戶聯絡人);
+            客戶聯絡人.is_Delete = true; //刪除資料功能不能真的刪除資料庫中的資料
             db.SaveChanges();
             return RedirectToAction("Index");
         }
