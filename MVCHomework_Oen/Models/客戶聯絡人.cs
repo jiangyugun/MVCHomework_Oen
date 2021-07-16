@@ -6,20 +6,42 @@
 //     如果重新產生程式碼，將會覆寫對這個檔案的手動變更。
 // </auto-generated>
 //------------------------------------------------------------------------------
-
+/*
+ [Required]  必填
+ */
 namespace MVCHomework_Oen.Models
 {
     using System;
     using System.Collections.Generic;
-    
+    using System.ComponentModel;
+    using System.ComponentModel.DataAnnotations;
+
     public partial class 客戶聯絡人
     {
         public int Id { get; set; }
+
+        [Required]
         public int 客戶Id { get; set; }
+
+        [Required]
+        [StringLength(50)]
         public string 職稱 { get; set; }
+
+        [Required]
+        [StringLength(50)]
         public string 姓名 { get; set; }
+
+        [Required]
+        [StringLength(250)]
+        [EmailAddress(ErrorMessage = "{0}只允許輸入Email格式")]
+        [DisplayName("Eamil欄位")]
         public string Email { get; set; }
+
+        [RegularExpression(@"\d{4}-\d{6}", ErrorMessage ="範例格式:0988-999999 ") ]
+        [StringLength(50)]
         public string 手機 { get; set; }
+
+        [StringLength(50)]
         public string 電話 { get; set; }
         public bool is_Delete { get; set; }
     

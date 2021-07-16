@@ -11,7 +11,9 @@ namespace MVCHomework_Oen.Models
 {
     using System;
     using System.Collections.Generic;
-    
+    using System.ComponentModel;
+    using System.ComponentModel.DataAnnotations;
+
     public partial class 客戶資料
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
@@ -20,13 +22,34 @@ namespace MVCHomework_Oen.Models
             this.客戶銀行資訊 = new HashSet<客戶銀行資訊>();
             this.客戶聯絡人 = new HashSet<客戶聯絡人>();
         }
-    
+
+        [Required]
+        [DisplayName("Id欄位")]
         public int Id { get; set; }
+        [Required]
+        [DisplayName("客戶名稱欄位")]
+        [StringLength(15)]
         public string 客戶名稱 { get; set; }
+
+        [Required]
+        [DisplayName("統一編號欄位")]
+        [StringLength(8)]
         public string 統一編號 { get; set; }
+
+        [Required]
+        [StringLength(50)]
         public string 電話 { get; set; }
+
+        [StringLength(50)]
         public string 傳真 { get; set; }
+
+        [StringLength(100)]
         public string 地址 { get; set; }
+
+        [Required]
+        [EmailAddress(ErrorMessage = "{0}只允許輸入Email格式")]
+        [StringLength(250)]
+        [DisplayName("Eamil欄位")]
         public string Email { get; set; }
         public bool is_Delete { get; set; }
     
